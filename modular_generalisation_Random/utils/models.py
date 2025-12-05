@@ -22,7 +22,7 @@ class modelModular(nn.Module):
         )
         self.mlp_23 = nn.Sequential(
             nn.Linear(2, L_post),
-            nn.LeakyReLU(negative_slope=0.1),
+            nn.LeakyReLU(negative_slope=0.1)
         )
         final_layers = []
         for i in range(N_post):
@@ -34,47 +34,7 @@ class modelModular(nn.Module):
     def forward(self, xy):
         x2 = self.mlp_02_x(xy[:, 0].unsqueeze(-1))
         y2 = self.mlp_02_y(xy[:, 1].unsqueeze(-1))
-        combined = torch.cat([x2, y2], dim=1)
-        r2 = self.mlp_23(combined)
-        z = self.mlp_35(r2)
-        return z
-
-class modelModularMulti(nn.Module):
-    def __init__(self, D = 2, L_single = 64, L_post = 128, N_post = 0, forcedAdd = False):
-        super(modelModularMulti, self).__init__()
-        self.D = D
-        self.forcedAdd = forcedAdd
-        self.modlayer = nn.ModuleList([
-            nn.Sequential(
-                nn.Linear(1, L_single),
-                nn.LeakyReLU(negative_slope=0.1),
-                nn.Linear(L_single, 1)
-            )
-            for _ in range(self.D)
-        ])
-        if self.forcedAdd:
-            self.mlp_23 = nn.Sequential(nn.LeakyReLU(negative_slope=0.1), nn.Linear(1, L_post), nn.LeakyReLU(negative_slope=0.1))
-        else:
-            self.mlp_23 = nn.Sequential(
-                nn.LeakyReLU(negative_slope=0.1),
-                nn.Linear(self.D, L_post),
-                nn.LeakyReLU(negative_slope=0.1),
-            )
-        final_layers = []
-        for i in range(N_post):
-            final_layers.append(nn.Linear(L_post, L_post))
-            final_layers.append(nn.LeakyReLU(negative_slope=0.1))
-        final_layers.append(nn.Linear(L_post, 1))
-        final_layers.append(nn.LeakyReLU(negative_slope=0.1))
-        self.mlp_35 = nn.Sequential(*final_layers)
-
-    def forward(self, xy):
-        xx = []
-        for i in range(self.D):
-            xx.append(self.modlayer[i](xy[:, i].unsqueeze(-1)))
-        combined = torch.cat(xx, dim=1)
-        if self.forcedAdd:
-            combined = combined.sum(axis = 1).unsqueeze(1)
+        combined = torch.cat((x2, y2), dim=1)
         r2 = self.mlp_23(combined)
         z = self.mlp_35(r2)
         return z
@@ -95,6 +55,7 @@ class modelBottleNeck(nn.Module):
         for i in range(N_hidden):
             layers.append(nn.Linear(L_hidden, L_hidden))
             layers.append(nn.LeakyReLU(negative_slope=0.1))
+
         # Final layer: map to 1 channel with correct output size
         layers.append(nn.Linear(L_hidden, 1))
         self.decoder = nn.Sequential(*layers)
@@ -117,29 +78,6 @@ class modelFull(nn.Module):
             layers.append(nn.Linear(L_hidden, L_hidden))
             layers.append(nn.LeakyReLU(negative_slope=0.1))
 
-        # Final layer: map to 1 channel with correct output size
-        layers.append(nn.Linear(L_hidden, 1))
-        self.decoder = nn.Sequential(*layers)
-
-    def forward(self, x):
-        for layer in self.decoder:
-            x = layer(x)
-        return x
-
-# full mlp definition, takes total parameter count and layer size into consideration
-class modelFullMulti(nn.Module):
-    def __init__(self, D = 2, L_single = 64, L_hidden = 128, N_hidden = 2):
-        super(modelFullMulti, self).__init__()
-        self.D = D
-
-        layers = []
-        layers.append(nn.Linear(self.D, self.D * L_single))
-        layers.append(nn.LeakyReLU(negative_slope=0.1))
-        layers.append(nn.Linear(self.D * L_single, L_hidden))
-        layers.append(nn.LeakyReLU(negative_slope=0.1))
-        for i in range(N_hidden - 1):
-            layers.append(nn.Linear(L_hidden, L_hidden))
-            layers.append(nn.LeakyReLU(negative_slope=0.1))
         # Final layer: map to 1 channel with correct output size
         layers.append(nn.Linear(L_hidden, 1))
         self.decoder = nn.Sequential(*layers)
