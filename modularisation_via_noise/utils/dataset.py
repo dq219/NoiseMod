@@ -9,13 +9,24 @@ class GeneralDataset(Dataset):
                  num_samples = 1000,
                  mean = 0,
                  std_dev = 2,
-                 mapfun = lambda x : x):
+                 mapfun = lambda x : x,
+                 modWise = False):
 
         #######################################
         ### Draw from uniform distributions ###
         #######################################
 
         self.data = (np.random.rand(num_samples, encode_num) - 0.5) * 2 * std_dev + mean
+
+        #################################
+        ### modWise data distribution ###
+        #################################
+        
+        if modWise:
+            x = np.zeros((num_samples, encode_num))
+            random_indices = np.random.randint(0, encode_num, (num_samples,))  # A random index for each row
+            x[np.arange(num_samples), random_indices] = self.data[np.arange(num_samples), random_indices]
+            self.data = x
 
         ########################
         ### Generate outputs ###

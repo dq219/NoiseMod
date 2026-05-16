@@ -39,6 +39,23 @@ def regularizer_L12(layers):
             res += torch.sum(encoder_norms * decoder_norms)
     return res
 
+def regularizer_L21(layers):
+    wt_idxes = []
+    for idx in range(len(layers)):
+        if isinstance(layers[idx], nn.Linear):
+            wt_idxes.append(idx)
+    res = 0
+    for i in range(len(wt_idxes) - 1):
+        enc_weights = layers[wt_idxes[i]].weight
+        dec_weights = layers[wt_idxes[i + 1]].weight
+        (enc_out, enc_in) = enc_weights.shape
+        (dec_out, dec_in) = dec_weights.shape
+        encoder_norms = torch.sum(enc_weights ** 2, dim = 1)
+        decoder_norms = torch.sum(torch.abs(dec_weights), dim = 0)
+        if enc_out == dec_in:
+            res += torch.sum(encoder_norms * decoder_norms)
+    return res
+
 def regularizer_L1(layers):
     res = 0
     for idx in range(len(layers)):
@@ -75,7 +92,7 @@ class NoiseInject(nn.Module):
 class MODEL(nn.Module):
     def __init__(self,
                  encode_num = 4, decode_num = 4, hidden_num = 64, bias = True, nonlinear = True, hidden_layer = 3, use_tanh = False, use_sigmoid = False, # network-specific parameters
-                 L1 = -1, L2 = -1, L12 = -1, WeightedAct = -1, Act = -1, alpha = 2, dropout = -1, noise_coef = -1, noise_expt = 1, # noise/regularisers
+                 L1 = -1, L2 = -1, L12 = -1, L21 = -1, WeightedAct = -1, Act = -1, alpha = 2, dropout = -1, noise_coef = -1, noise_expt = 1, # noise/regularisers
                  **kwargs):
 
         super(MODEL, self).__init__()
@@ -83,6 +100,7 @@ class MODEL(nn.Module):
         self.L1 = L1
         self.L2 = L2
         self.L12 = L12
+        self.L21 = L21
         self.Act = Act
         self.WeightedAct = WeightedAct
         self.alpha = alpha
@@ -120,19 +138,21 @@ class MODEL(nn.Module):
 
         self.layer = nn.Sequential(*layers)
 
-    def forward(self, x):
+    def forward(self, x, linear_network = False):
         activations = []
         # activations.append(x)
         for l in self.layer:
             x = l(x)
             if (isinstance(l, nn.LeakyReLU) | isinstance(l, nn.Tanh) | isinstance(l, nn.Sigmoid)):
                 activations.append(x)
+            if linear_network and isinstance(l, nn.Linear):
+                activations.append(x)
         return x, activations
 
     def fit(self, train_dataloader, train_dataset, test_dataset, optimizer, criterion, device = torch.device('cpu')):
         # losses are arranged in the following order:
         # train, test, L1, L2, LWA, LA, and L12 losses
-        LOSS = [0, 0, 0, 0, 0, 0, 0] 
+        LOSS = [0, 0, 0, 0, 0, 0, 0, 0] 
         self.train()
         for inputs, targets in train_dataloader:
             inputs, targets = inputs.to(device), targets.to(device)
@@ -160,6 +180,10 @@ class MODEL(nn.Module):
                 loss_regu_L12 = regularizer_L12(self.layer)
                 LOSS[6] += loss_regu_L12.item() / len(train_dataloader)
                 loss += loss_regu_L12 * self.L12
+            if self.L21 > 0:
+                loss_regu_L21 = regularizer_L21(self.layer)
+                LOSS[7] += loss_regu_L21.item() / len(train_dataloader)
+                loss += loss_regu_L21 * self.L21
 
             loss.backward()
             optimizer.step()

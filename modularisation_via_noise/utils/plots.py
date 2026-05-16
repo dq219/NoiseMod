@@ -47,7 +47,7 @@ def plot_test(model, dataset, device, morph, folder, file_name, file_format = 'p
 def plot_loss(losses, folder, file_name, file_format = 'pdf', figsize = (4,3), **kwargs):
 
 	plt.figure(figsize = figsize)
-	labels = ['data loss', 'validation', 'L1', 'L2', 'LWA', 'LA', 'L12']
+	labels = ['data loss', 'validation', 'L1', 'L2', 'LWA', 'LA', 'L12', 'L21']
 	for i in range(losses.shape[-1]):
 		if losses[0, i] > 0:
 			plt.plot(losses[:, i], label = labels[i])
