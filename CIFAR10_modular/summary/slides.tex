@@ -65,7 +65,7 @@
 % --- 3. Task ------------------------------------------------------------
 \begin{frame}{The task: \texttt{ConcatCIFAR10}}
   \centering
-  \includegraphics[width=0.92\linewidth]{task_examples}
+  \includegraphics[width=0.60\linewidth]{task_examples}
   \begin{itemize}\small
     \item Input shape $(3, 32, 32N)$; per-sample label is a length-$N$
       vector.
@@ -170,10 +170,26 @@
   \end{itemize}
 \end{frame}
 
-% --- 11. Weight visualisation ------------------------------------------
+% --- 11. Final-epoch eigenspectrum -------------------------------------
+\begin{frame}{Final-epoch eigenspectrum: $\lambda_1 \ldots \lambda_{10}$ for $N = 1 \ldots 8$}
+  \centering
+  \includegraphics[width=0.66\linewidth]{final_spectrum}
+  \begin{itemize}\small
+    \item Open circle marks position $k = N$ on each curve --- the last
+      eigenvalue inside the ``module'' block.
+    \item For $N \le 6$: $\lambda_1 \ldots \lambda_N$ all sit near zero, then
+      the spectrum jumps at $k = N{+}1$ --- clear eigengap at the expected
+      position.
+    \item $N{=}7,8$: the in-block eigenvalues no longer hug zero and the
+      jump at $k{=}N{+}1$ is shallower --- consistent with incomplete
+      modularisation within the 100-epoch budget.
+  \end{itemize}
+\end{frame}
+
+% --- 12. Weight visualisation ------------------------------------------
 \begin{frame}{Visualising the learned modularity: $|W_{fc2}|$ heatmaps}
   \centering
-  \includegraphics[width=0.78\linewidth]{fc2_heatmaps_grid}
+  \includegraphics[width=0.6\linewidth]{fc2_heatmaps_grid}
   \begin{itemize}\small
     \item Hidden units (columns) reordered by spectral $k$-means with
       $k{=}N$, then matched to frames by max-affinity assignment.
@@ -183,7 +199,7 @@
   \end{itemize}
 \end{frame}
 
-% --- 12. Summary -------------------------------------------------------
+% --- 13. Summary -------------------------------------------------------
 \begin{frame}{Summary and next steps}
   \textbf{What works at batch 128, reg=1.0.}
   \begin{itemize}\setlength\itemsep{2pt}
@@ -202,8 +218,6 @@
     \item Reg-weight sweep at fixed $N$: cleanest operating point?
     \item Baseline at reg$=$0 for each $N$ to bound the
       no-regularization modularity.
-    \item Alternative regularizers (\code{regularizer\_L12},
-      \code{regularizer\_L21} in \code{modularisation\_via\_noise}).
   \end{itemize}
 \end{frame}
 

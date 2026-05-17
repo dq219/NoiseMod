@@ -4,5 +4,12 @@ __pycache__
 *.pdf
 *.sh
 *.out
+*.aux
+*.nav
+*.snm
+*.toc
+*.gz
+*.log
+
 
 data/

@@ -151,7 +151,7 @@ def main(Ns: tuple[int, ...] = DEFAULT_N_LIST) -> None:
         print(f"wrote {out}")
 
     # combined grid for the slide
-    fig, axes = plt.subplots(len(Ns), 1, figsize=(11, 3.0 * len(Ns)))
+    fig, axes = plt.subplots(len(Ns), 1, figsize=(11, 2.0 * len(Ns)))
     if len(Ns) == 1:
         axes = [axes]
     for ax, N in zip(axes, Ns):
