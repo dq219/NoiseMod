@@ -1,0 +1,17 @@
+{
+  "N": 5,
+  "epochs": 100,
+  "batch_size": 128,
+  "lr": 0.001,
+  "weight_decay": 0.01,
+  "alpha": 2.0,
+  "reg_weight": 1.0,
+  "hidden_dim": -1,
+  "num_workers": 2,
+  "data_root": "./data",
+  "results_root": "./results",
+  "run_name": "N5_reg1.0_h2560",
+  "device": "cuda",
+  "seed": 0,
+  "hidden_dim_resolved": 2560
+}
