@@ -1,9 +1,0 @@
-{
-  "permissions": {
-    "allow": [
-      "Bash(python make_weight_heatmap.py)",
-      "Bash(python3 -c \"import torch, sklearn, scipy; print\\('ok'\\)\")",
-      "Bash(python3 *)"
-    ]
-  }
-}
